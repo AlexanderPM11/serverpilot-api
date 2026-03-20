@@ -14,6 +14,9 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Inicializar el proveedor de cifrado AES256 para la Base de Datos
+ServerPilot.Infrastructure.Services.AesEncryptionProvider.Initialize(builder.Configuration);
+
 // DB & Identity
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=serverpilot.db"));
