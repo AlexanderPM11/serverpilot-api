@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Renci.SshNet;
 using ServerPilot.Domain.Interfaces;
 using System.Net.WebSockets;
-using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace ServerPilot.Api.Controllers
 {
@@ -29,18 +28,47 @@ namespace ServerPilot.Api.Controllers
                 return;
             }
 
-            // The SshService needs server credentials; we look them up from the DB.
-            // For now, the client sends them as query params over the secure WS.
-            var host = HttpContext.Request.Query["host"].ToString();
-            var port = int.TryParse(HttpContext.Request.Query["port"], out var p) ? p : 22;
-            var username = HttpContext.Request.Query["username"].ToString();
-            var password = HttpContext.Request.Query["password"].ToString();
-
             var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
+
+            // ── Security: credentials arrive in the FIRST WebSocket message (JSON) ──
+            // This keeps the SSH password out of URLs, server logs, and browser history.
+            var buffer = new byte[4096];
+            var initResult = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+            if (initResult.MessageType == WebSocketMessageType.Close)
+            {
+                await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed before init", CancellationToken.None);
+                return;
+            }
+
+            SshCredentials? creds;
+            try
+            {
+                var json = Encoding.UTF8.GetString(buffer, 0, initResult.Count);
+                creds = JsonSerializer.Deserialize<SshCredentials>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch
+            {
+                var err = Encoding.UTF8.GetBytes("Invalid credential format.");
+                await ws.SendAsync(err, WebSocketMessageType.Text, true, CancellationToken.None);
+                await ws.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Bad init message", CancellationToken.None);
+                return;
+            }
+
+            if (creds is null || string.IsNullOrEmpty(creds.Host) || string.IsNullOrEmpty(creds.Username))
+            {
+                var err = Encoding.UTF8.GetBytes("Missing required SSH credentials.");
+                await ws.SendAsync(err, WebSocketMessageType.Text, true, CancellationToken.None);
+                await ws.CloseAsync(WebSocketCloseStatus.PolicyViolation, "Missing credentials", CancellationToken.None);
+                return;
+            }
+
             var connectionId = Guid.NewGuid().ToString();
 
-            // Connect SSH
-            var connectResult = await _sshService.ConnectAsync(connectionId, host, port, username, password, null, null);
+            // Connect SSH using credentials from the secure init message
+            var connectResult = await _sshService.ConnectAsync(
+                connectionId, creds.Host, creds.Port, creds.Username, creds.Password ?? "", null, null);
+
             if (!connectResult.Success)
             {
                 var errBytes = Encoding.UTF8.GetBytes($"SSH Error: {connectResult.Error}");
@@ -49,7 +77,7 @@ namespace ServerPilot.Api.Controllers
                 return;
             }
 
-            // Open ShellStream
+            // Open ShellStream and pipe output → WebSocket
             await _sshService.StartTerminalSessionAsync(connectionId, async (data) =>
             {
                 if (ws.State == WebSocketState.Open)
@@ -59,8 +87,7 @@ namespace ServerPilot.Api.Controllers
                 }
             });
 
-            // Forward browser input to SSH
-            var buffer = new byte[4096];
+            // Forward browser keystrokes → SSH
             try
             {
                 while (ws.State == WebSocketState.Open)
@@ -81,4 +108,7 @@ namespace ServerPilot.Api.Controllers
             }
         }
     }
+
+    /// <summary>Credentials sent as the first WebSocket message after connection.</summary>
+    public record SshCredentials(string Host, int Port, string Username, string? Password);
 }

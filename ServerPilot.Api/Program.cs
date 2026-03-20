@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -9,6 +10,7 @@ using ServerPilot.Infrastructure.Persistence;
 using ServerPilot.Infrastructure.Services;
 using ServerPilot.Infrastructure.Identity;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +54,19 @@ builder.Services.AddAuthentication(options => {
             return Task.CompletedTask;
         }
     };
+});
+
+// ── Rate Limiting — 10 login attempts per IP per minute ──────────────────────
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("login", limiter =>
+    {
+        limiter.PermitLimit         = 10;
+        limiter.Window              = TimeSpan.FromMinutes(1);
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiter.QueueLimit          = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 builder.Services.AddControllers();
@@ -111,28 +126,41 @@ using (var scope = app.Services.CreateScope()) {
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     if (!userManager.Users.Any())
     {
-        // Read credentials from environment variables (set in docker-compose or system env)
         var adminEmail    = Environment.GetEnvironmentVariable("ADMIN_EMAIL")    ?? "admin@serverpilot.local";
         var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "Admin123!";
 
-        var defaultUser = new ApplicationUser 
-        { 
-            UserName = adminEmail, 
+        var defaultUser = new ApplicationUser
+        {
+            UserName = adminEmail,
             Email = adminEmail,
-            RequiresPasswordChange = false   // No forced change — admin sets preferred creds via env
+            RequiresPasswordChange = false
         };
         userManager.CreateAsync(defaultUser, adminPassword).Wait();
     }
 }
 
-// Swagger available in all environments
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// ── Security headers ─────────────────────────────────────────────────────────
+app.Use(async (context, next) =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ServerPilot API v1");
-    c.RoutePrefix = "swagger";
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"]        = "DENY";
+    context.Response.Headers["Referrer-Policy"]        = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"]     = "camera=(), microphone=(), geolocation=()";
+    await next();
 });
 
+// ── Swagger: only in Development ─────────────────────────────────────────────
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ServerPilot API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+
+app.UseRateLimiter();
 app.UseCors("AllowAll");
 app.UseWebSockets();
 app.UseAuthentication();
@@ -141,3 +169,5 @@ app.MapControllers();
 app.MapHub<TerminalHub>("/ws/terminal");
 
 app.Run();
+
+
