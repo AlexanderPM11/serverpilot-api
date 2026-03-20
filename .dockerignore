@@ -1,0 +1,16 @@
+## .NET build artifacts
+**/bin/
+**/obj/
+
+## Local NuGet cache and config
+**/*.user
+nuget.config
+NuGet.Config
+
+## Git
+.git/
+.gitignore
+
+## Docs / misc
+README.md
+*.md

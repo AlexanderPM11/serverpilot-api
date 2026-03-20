@@ -9,6 +9,9 @@ COPY ServerPilot.Application/ServerPilot.Application.csproj             ServerPi
 COPY ServerPilot.Infrastructure/ServerPilot.Infrastructure.csproj       ServerPilot.Infrastructure/
 COPY ServerPilot.Api/ServerPilot.Api.csproj                             ServerPilot.Api/
 
+# Clear Windows fallback package folders (avoids Visual Studio NuGet path errors)
+ENV NUGET_FALLBACK_PACKAGES=""
+
 RUN dotnet restore ServerPilot.Api/ServerPilot.Api.csproj
 
 # Copy everything else and publish
