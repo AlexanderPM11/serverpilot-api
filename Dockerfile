@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy solution + project files first (layer caching)
-COPY ServerPilot.slnx                                      ./
-COPY ServerPilot.Domain/ServerPilot.Domain.csproj          ServerPilot.Domain/
-COPY ServerPilot.Application/ServerPilot.Application.csproj ServerPilot.Application/
-COPY ServerPilot.Infrastructure/ServerPilot.Infrastructure.csproj ServerPilot.Infrastructure/
-COPY ServerPilot.Api/ServerPilot.Api.csproj                ServerPilot.Api/
+COPY ServerPilot.slnx                                                   ./
+COPY ServerPilot.Domain/ServerPilot.Domain.csproj                       ServerPilot.Domain/
+COPY ServerPilot.Application/ServerPilot.Application.csproj             ServerPilot.Application/
+COPY ServerPilot.Infrastructure/ServerPilot.Infrastructure.csproj       ServerPilot.Infrastructure/
+COPY ServerPilot.Api/ServerPilot.Api.csproj                             ServerPilot.Api/
 
 RUN dotnet restore ServerPilot.Api/ServerPilot.Api.csproj
 
