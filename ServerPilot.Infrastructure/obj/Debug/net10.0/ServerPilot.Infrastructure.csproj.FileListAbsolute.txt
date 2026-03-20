@@ -1,0 +1,17 @@
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPilot.Infrastructure.csproj.AssemblyReference.cache
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPilot.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPilot.Infrastructure.AssemblyInfoInputs.cache
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPilot.Infrastructure.AssemblyInfo.cs
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPilot.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\bin\Debug\net10.0\ServerPilot.Infrastructure.deps.json
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\bin\Debug\net10.0\ServerPilot.Infrastructure.dll
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\bin\Debug\net10.0\ServerPilot.Infrastructure.pdb
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\bin\Debug\net10.0\ServerPilot.Application.dll
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\bin\Debug\net10.0\ServerPilot.Domain.dll
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\bin\Debug\net10.0\ServerPilot.Application.pdb
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\bin\Debug\net10.0\ServerPilot.Domain.pdb
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPi.6EFEA5D2.Up2Date
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPilot.Infrastructure.dll
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\refint\ServerPilot.Infrastructure.dll
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ServerPilot.Infrastructure.pdb
+C:\Projects\Personal\Programacion\ServerPilot\ServerPilot.Infrastructure\obj\Debug\net10.0\ref\ServerPilot.Infrastructure.dll
